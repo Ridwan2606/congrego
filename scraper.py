@@ -1,6 +1,7 @@
 #importing necessary libraries
 import twitter
 import os
+import nltk
 
 
 # Add some for sampling. Will define the real countries/cities to scrape from later.
@@ -71,5 +72,5 @@ def globalScrapeByWord(search_keyword):
         scrapeDict[country] = getTweetsByWordCountry(search_keyword,country)
     return scrapeDict
 
-print(globalScrapeByWord("BLM"))
+#print(globalScrapeByWord("BLM"))
 
