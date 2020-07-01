@@ -1,7 +1,12 @@
 #importing necessary libraries
 import twitter
 import os
-import nltk
+
+from nltk.tag import pos_tag
+from nltk.stem.wordnet import WordNetLemmatizer
+from nltk.corpus import stopwords
+
+import re, string, pickle
 
 
 # Add some for sampling. Will define the real countries/cities to scrape from later.
@@ -72,5 +77,30 @@ def globalScrapeByWord(search_keyword):
         scrapeDict[country] = getTweetsByWordCountry(search_keyword,country)
     return scrapeDict
 
-#print(globalScrapeByWord("BLM"))
+
+
+def remove_noise(tweet_tokens, stop_words = ()):
+
+    cleaned_tokens = []
+
+    for token, tag in pos_tag(tweet_tokens):
+        token = re.sub('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+#]|[!*\(\),]|'\
+                       '(?:%[0-9a-fA-F][0-9a-fA-F]))+','', token)
+        token = re.sub("(@[A-Za-z0-9_]+)","", token)
+
+        if tag.startswith("NN"):
+            pos = 'n'
+        elif tag.startswith('VB'):
+            pos = 'v'
+        else:
+            pos = 'a'
+
+        lemmatizer = WordNetLemmatizer()
+        token = lemmatizer.lemmatize(token, pos)
+
+        if len(token) > 0 and token not in string.punctuation and token.lower() not in (stop_words + ('AT_USER','URL')):
+            cleaned_tokens.append(token.lower())
+    return cleaned_tokens
+
+print(globalScrapeByWord("BLM"))
 
