@@ -97,7 +97,7 @@ This is a JSON formatted object returned by an HTTP get request to the API.
     }
   }
 }
-<code>
+</code>
 
 ## Note
 A cost is incurred per http request to the API or daily scraping hosted on AWS. As such, I have unsubscribed from this service after having completed the project. The API is currently unavailable. However, the codebase is finalised. You can re-create the project using the above instructions but you will have to pay for every usage of the lambda functions, although it is relatively affordable.
