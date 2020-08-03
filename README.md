@@ -48,6 +48,56 @@ Note that the IAM settings for a lambda function has to be adjusted for coupling
 6. Synchronise the daily execution of scraper.py using AWS CloudWatch
 7. Expose the fetchData.py lambda function using AWS API Gateway. A get request to that API will return the final sentiment analysis report.
 
+## Report Format
+
+This is a JSON formatted object returned by an HTTP get request to the API.
+
+<code>
+{
+  "statusCode": 200,
+  "body": {
+    "Items": [
+      {
+        "country": "Canada",
+        "sentiment": "69"
+      },
+      {
+        "country": "USA",
+        "sentiment": "47"
+      },
+      {
+        "country": "Australia",
+        "sentiment": "71"
+      },
+      {
+        "country": "Africa",
+        "sentiment": "76"
+      },
+      {
+        "country": "China",
+        "sentiment": "65"
+      }
+    ],
+    "Count": 5,
+    "ScannedCount": 5,
+    "ResponseMetadata": {
+      "RequestId": "ASCTOER7K1L8RLKQ58EEJLDOQBVV4KQNSO5AEMVJF66Q9ASUAAJG",
+      "HTTPStatusCode": 200,
+      "HTTPHeaders": {
+        "server": "Server",
+        "date": "Mon, 03 Aug 2020 22:07:51 GMT",
+        "content-type": "application/x-amz-json-1.0",
+        "content-length": "269",
+        "connection": "keep-alive",
+        "x-amzn-requestid": "ASCTOER7K1L8RLKQ58EEJLDOQBVV4KQNSO5AEMVJF66Q9ASUAAJG",
+        "x-amz-crc32": "4068866711"
+      },
+      "RetryAttempts": 0
+    }
+  }
+}
+<code>
+
 ## Note
 A cost is incurred per http request to the API or daily scraping hosted on AWS. As such, I have unsubscribed from this service after having completed the project. The API is currently unavailable. However, the codebase is finalised. You can re-create the project using the above instructions but you will have to pay for every usage of the lambda functions, although it is relatively affordable.
 
