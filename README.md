@@ -48,7 +48,7 @@ Note that the IAM settings for a lambda function has to be adjusted for coupling
 6. Synchronise the daily execution of scraper.py using AWS CloudWatch
 7. Expose the fetchData.py lambda function using AWS API Gateway. A get request to that API will return the final sentiment analysis report.
 
-## Report Format
+## Sentiment Analysis Report Format
 
 This is a JSON formatted object returned by an HTTP get request to the API.
 
