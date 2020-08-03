@@ -12,8 +12,6 @@ import json
 import pickle
 import boto3
 
-
-# Add some for sampling. Will define the real countries/cities to scrape from later.
 # Geocodes maps from country name to city name to geocode (latitude,longitude,radius)
 geocodes={
     "Canada": {
@@ -27,23 +25,41 @@ geocodes={
     "Australia":{
         "Perth": [37.781157, -122.398720, "1mi"],
         "Melbourne": [37.781157, -122.398720, "1mi"]
+    },
+    "Africa":{
+        "Cairo": [37.781157, -122.398720, "1mi"]
+    },
+    "China":{
+        "Beijing":[37.781157, -122.398720, "1mi"]
     }
 }
 
+'''
 # initialising the API keys from the environmental variables for security
 con_key = os.environ.get("twitter_consumer_key")
 con_secret = os.environ.get("twitter_consumer_secret")
 token_key = os.environ.get("twitter_access_token_key")
 token_secret = os.environ.get("twitter_access_token_secret")
+'''
 
-# initialize api instance
+dynamodb = boto3.resource('dynamodb')
+
+# loading the Keys table
+keys = dynamodb.table("Keys")
+
+# initialising the Twitter API keys 
+con_key = table.get_item(Key={'label': 'twitter_consumer_key'})
+con_secret = table.get_item(Key={'label': 'twitter_consumer_secret'})
+token_key = table.get_item(Key={'label': 'twitter_access_token_key'})
+token_secret = table.get_item(Key={'label': 'twitter_access_token_secret'})
+
+
+# initialize twitter api instance
 twitter_api = twitter.Api(consumer_key=con_key,
                         consumer_secret=con_secret,
                         access_token_key=token_key,
                         access_token_secret=token_secret)
 
-# test authentication
-#print(twitter_api.VerifyCredentials())
 
 
 #Fetching the NLP model from s3 bucket
@@ -55,14 +71,6 @@ with open('/tmp/model.pickle', 'wb') as data:
 # classifier variable stores the NLP model
 with open('/tmp/model.pickle', 'rb') as data:
     classifier = pickle.load(data)
-
-dynamodb = boto3.resource('dynamodb')
-
-def printTweets(tweetList):
-    count = 1
-    for tweet in tweetList:
-        print( str(count) + ".) " + tweet)
-        count+=1
 
 def getTweetsByWord(search_keyword):
     try:
@@ -95,7 +103,6 @@ def globalScrapeByWord(search_keyword):
     return scrapeDict
 
 def remove_noise(tweet_tokens, stop_words = ()):
-
     cleaned_tokens = []
 
     for token, tag in pos_tag(tweet_tokens):
@@ -116,8 +123,6 @@ def remove_noise(tweet_tokens, stop_words = ()):
         if len(token) > 0 and token not in string.punctuation and token.lower() not in (stop_words + ('AT_USER','URL')):
             cleaned_tokens.append(token.lower())
     return cleaned_tokens
-
-print(globalScrapeByWord("COVID"))
 
 # Returns the percentage of positive tweets out of total number of tweets for that country
 def getSentimentByCountry(tweetList):
