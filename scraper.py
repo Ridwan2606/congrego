@@ -8,6 +8,10 @@ from nltk.corpus import stopwords
 
 import re, string, pickle
 
+import json
+import pickle
+import boto3
+
 
 # Add some for sampling. Will define the real countries/cities to scrape from later.
 # Geocodes maps from country name to city name to geocode (latitude,longitude,radius)
@@ -40,6 +44,19 @@ twitter_api = twitter.Api(consumer_key=con_key,
 
 # test authentication
 #print(twitter_api.VerifyCredentials())
+
+
+#Fetching the NLP model from s3 bucket
+s3 = boto3.resource('s3')
+
+with open('/tmp/model.pickle', 'wb') as data:
+    s3.Bucket("nlp-model-twitter").download_fileobj("model.pickle", data)
+
+# classifier variable stores the NLP model
+with open('/tmp/model.pickle', 'rb') as data:
+    classifier = pickle.load(data)
+
+dynamodb = boto3.resource('dynamodb')
 
 def printTweets(tweetList):
     count = 1
@@ -77,8 +94,6 @@ def globalScrapeByWord(search_keyword):
         scrapeDict[country] = getTweetsByWordCountry(search_keyword,country)
     return scrapeDict
 
-
-
 def remove_noise(tweet_tokens, stop_words = ()):
 
     cleaned_tokens = []
@@ -102,5 +117,43 @@ def remove_noise(tweet_tokens, stop_words = ()):
             cleaned_tokens.append(token.lower())
     return cleaned_tokens
 
-print(globalScrapeByWord("BLM"))
+print(globalScrapeByWord("COVID"))
+
+# Returns the percentage of positive tweets out of total number of tweets for that country
+def getSentimentByCountry(tweetList):
+    totalNo = len(tweetList)
+    posNo = 0
+    for tweet in tweetList:
+        custom_tokens = remove_noise(word_tokenize(tweet))
+        prediction = classifier.classify(dict([token, True] for token in custom_tokens))
+        #print("Model predicts that the sentence is : " + prediction + "\n")
+        if prediction="Positive":
+            posNo += 1
+    return (posNo*100)/totalNo
+
+def lambda_handler(event, context):
+    tweetsForCountry = globalScrapeByWord("COVID")
+    countrySentimentDict = {}
+    for country,tweetList in tweetsForCountry.items():
+        countrySentimentDict[country] = getSentimentByCountry(tweetList)
+    
+    table = dynamodb.Table('Country_Sentiment')
+
+    for country,sentiment in countrySentimentDict.items():
+        table.put_item(
+            Item={
+                    'country': country,
+                    'sentiment': sentiment
+                }
+        )
+
+    #TODO implement
+    return {
+        'statusCode': 200,
+        'body': json.dumps('Scraping Done. Country_Sentiment table updated with sentiment analysis for each country')
+    }
+
+
+
+
 
